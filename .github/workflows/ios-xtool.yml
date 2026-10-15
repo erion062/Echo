@@ -1,0 +1,45 @@
+name: Build iOS app (xtool)
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain info
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Install xtool
+        run: |
+          brew install xtool-org/tap/xtool
+          xtool --help | head -5
+
+      - name: Build unsigned IPA with xtool
+        run: |
+          set -o pipefail
+          xtool dev build --ipa --configuration release 2>&1 | tee build.log
+
+      - name: Collect IPA
+        run: |
+          mkdir -p out
+          find xtool -maxdepth 1 -name "*.ipa" -exec cp {} out/ \;
+          ls -la out
+          test -n "$(ls out/*.ipa)"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Echo-ipa
+          path: out/*.ipa
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-log
+          path: build.log
