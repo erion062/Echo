@@ -1,0 +1,18 @@
+name: Download probe
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "Tools/Probe/**"
+      - ".github/workflows/probe.yml"
+
+jobs:
+  probe:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run probe
+        working-directory: Tools/Probe
+        run: swift run -c release Probe
