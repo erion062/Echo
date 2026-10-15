@@ -7,6 +7,8 @@ final class Library {
     private(set) var pending: [SearchResult] = []
     private(set) var progress: [String: Double] = [:]
     private(set) var failures: Set<String> = []
+    /// Short message shown as a banner when a download fails.
+    var toast: String?
 
     init() {
         Storage.prepare()
@@ -48,6 +50,8 @@ final class Library {
             } catch {
                 failures.insert(id)
                 Haptics.error()
+                let message = (error as? LocalizedError)?.errorDescription ?? "Couldn't save this song. Try again."
+                withAnimation(.spring(response: 0.45, dampingFraction: 0.8)) { toast = "\(result.title): \(message)" }
             }
             withAnimation(.smooth) {
                 progress[id] = nil

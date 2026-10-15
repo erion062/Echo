@@ -19,8 +19,11 @@ enum YouTubeSearch {
         let (data, response) = try await URLSession.shared.data(for: request)
         guard (response as? HTTPURLResponse)?.statusCode == 200 else { throw URLError(.badServerResponse) }
 
+        let json = try JSONSerialization.jsonObject(with: data)
+        let visitor = ((json as? [String: Any])?["responseContext"] as? [String: Any])?["visitorData"] as? String
+        await VisitorData.shared.set(visitor)
         var renderers: [[String: Any]] = []
-        collect(try JSONSerialization.jsonObject(with: data), into: &renderers)
+        collect(json, into: &renderers)
         var seen = Set<String>()
         return renderers.compactMap(parse).filter { seen.insert($0.id).inserted }
     }
